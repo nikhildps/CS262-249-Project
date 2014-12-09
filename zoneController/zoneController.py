@@ -13,6 +13,7 @@ import time
 
 LISTEN_PORT = 8080
 ACTUATOR_PORT = 80
+LOG_FILE_NAME = "sensor_log.txt"
 
 HEAT_POINT_2 = -128
 HEAT_POINT_1 = 0
@@ -22,7 +23,6 @@ COOL_POINT_2 = 256
 # Global variables might not be the best idea
 # Just using them to get this done quickly for the project demo
 actuator_registry = {}
-sensor_readings = {}
 analysis_queue = Queue() # Queue handles blocking and thread safety
 
 def getCurrentTime():
@@ -81,6 +81,15 @@ def analyzeSensorData():
 
         analysis_queue.task_done()
 
+def logSensorData(data):
+    timestamp = getCurrentTime()
+    data["ControllerDate"] = "{}/{}/{}".format( \
+        timestamp["Year"], timestamp["Month"], timestamp["Day"])
+    data["ControllerTime"] = "{}:{}:{}".format( \
+        timestamp["Hour"], timestamp["Minute"], timestamp["Second"])
+    with open(LOG_FILE_NAME, "a") as f:
+        f.write(json.dumps(data, sort_keys=True))
+
 @post('/actuators')
 def registerActuator():
     global acuator_registry
@@ -107,7 +116,6 @@ def registerActuator():
 
 @post('/sensor_data')
 def addSensorData():
-    global sensor_readings
     request_data = request.json
 
     if request_data is None:
@@ -130,8 +138,7 @@ def addSensorData():
     elif re.match(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', uuid) is None:
         return HTTPResponse(status=400, body="Request body contained invalid UUID")
 
-    sensor_readings[name] = temperature
-    # Give the sensor analysis thread a copy of sensor data and actuator addresses
+    logSensorData(request_data)
     analysis_queue.put((request_data, copy.deepcopy(actuator_registry)))
     header = {"Content-Type" : "application/json"}
     timestamp = getCurrentTime()
