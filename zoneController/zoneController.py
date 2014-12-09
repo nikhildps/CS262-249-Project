@@ -25,8 +25,17 @@ actuator_registry = {}
 sensor_readings = {}
 analysis_queue = Queue() # Queue handles blocking and thread safety
 
-def getCurrentTimeMillis():
-    return int(round(time.time() * 1000))
+def getCurrentTime():
+    t = time.localtime()
+    timestamp = {
+        "Year" : t.tm_year % 100,
+        "Month" : t.tm_mon,
+        "Day" : t.tm_mday,
+        "Hour" : t.tm_hour,
+        "Minute" : t.tm_min,
+        "Second" : t.tm_sec
+    }
+    return timestamp
 
 def sendActuationSignal(ip_addr, signal):
     headers = {"Content-type" : "application/json"}
@@ -36,7 +45,7 @@ def sendActuationSignal(ip_addr, signal):
     try:
         with closing(httplib.HTTPConnection(ip_addr)) as conn:
             # time.time() should return a float with msec precision
-            request_data["Time"] = getCurrentTimeMillis()
+            request_data.update(getCurrentTime())
             request_body = json.dumps(request_data, sort_keys=True)
             conn.request("POST", "/", request_body, headers)
     except:
@@ -65,6 +74,8 @@ def analyzeSensorData():
                 sendActuationSignal(econ_addr, 0)
             elif HEAT_POINT_1 < env_temp < COOL_POINT_1:
                 sendActuationSignal(econ_addr, 1)
+                if hvac_addr is not None:
+                    sendActuationSignal(hvac_addr, "Off")
             else:
                 sendActuationSignal(econ_addr, 0.5)
 
@@ -90,8 +101,8 @@ def registerActuator():
         return HTTPReponse(status=400, body="Request body must contain name")
 
     actuator_registry[name] = ip_addr
-    timestamp = {"Time" : getCurrentTimeMillis()}
     header = {"Content-Type" : "application/json"}
+    timestamp = getCurrentTime()
     return HTTPResponse(status=201, body=json.dumps(timestamp), headers=header)
 
 @post('/sensor_data')
@@ -123,7 +134,7 @@ def addSensorData():
     # Give the sensor analysis thread a copy of sensor data and actuator addresses
     analysis_queue.put((request_data, copy.deepcopy(actuator_registry)))
     header = {"Content-Type" : "application/json"}
-    timestamp = {"Time" : getCurrentTimeMillis()}
+    timestamp = getCurrentTime()
     return HTTPResponse(status=201, body=json.dumps(timestamp), headers=header)
 
 if __name__ == '__main__':
