@@ -24,6 +24,7 @@ COOL_POINT_2 = 256
 # Just using them to get this done quickly for the project demo
 actuator_registry = {}
 analysis_queue = Queue() # Queue handles blocking and thread safety
+gdp_queue = Queue()
 
 def getCurrentTime():
     t = time.localtime()
@@ -40,11 +41,9 @@ def getCurrentTime():
 def sendActuationSignal(ip_addr, signal):
     headers = {"Content-type" : "application/json"}
     request_data = {"Signal" : signal}
-    print json.dumps(request_data)
 
     try:
         with closing(httplib.HTTPConnection(ip_addr)) as conn:
-            # time.time() should return a float with msec precision
             request_data.update(getCurrentTime())
             request_body = json.dumps(request_data, sort_keys=True)
             conn.request("POST", "/", request_body, headers)
@@ -80,6 +79,20 @@ def analyzeSensorData():
                 sendActuationSignal(econ_addr, 0.5)
 
         analysis_queue.task_done()
+
+# This is run by the GDP thread
+def sendDataToGdp(address, port):
+    while True:
+        sensor_data = gdp_queue.get()
+        uuid = sensor_data["UUID"]
+        try:
+            with closing(httplib.HTTPConnection(address, port)) as conn:
+                request_body = json.dumps(json_data)
+                headers = {"Content-Type" : "application/json"}
+                conn.request("POST", "/" + uuid, request_body, headers)
+        except:
+            pass
+        gdp_queue.task_done()
 
 def logSensorData(data):
     timestamp = getCurrentTime()
@@ -145,8 +158,23 @@ def addSensorData():
     return HTTPResponse(status=201, body=json.dumps(timestamp), headers=header)
 
 if __name__ == '__main__':
+    if len(sys.argv) != 3:
+        print "Usage: {} gdp_addr gdp_port".format(sys.argv[0])
+        exit(-1)
+    else:
+        gdp_addr = sys.argv[1]
+        try:
+            gdp_port = int(sys.argv[2])
+        except ValueError:
+            print "Invalid GDP port specified"
+            exit(-1)
+
     analysis_thread = Thread(target=analyzeSensorData)
     analysis_thread.daemon = True
     analysis_thread.start()
 
-    run(host='localhost', port=LISTEN_PORT)
+    gdp_thread = Thread(target=sendDataToGdp, args=(gdp_addr, gdp_port))
+    gdp_thread.daemon = True
+    gdp_thread.start()
+
+    run(host='0.0.0.0', port=LISTEN_PORT)
