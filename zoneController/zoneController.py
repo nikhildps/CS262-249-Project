@@ -8,7 +8,6 @@ import httplib
 import json
 import re
 import socket # Only for inet_aton
-import sys
 import time
 
 LISTEN_PORT = 8080
@@ -40,11 +39,9 @@ def getCurrentTime():
 def sendActuationSignal(ip_addr, signal):
     headers = {"Content-type" : "application/json"}
     request_data = {"Signal" : signal}
-    print json.dumps(request_data)
 
     try:
         with closing(httplib.HTTPConnection(ip_addr)) as conn:
-            # time.time() should return a float with msec precision
             request_data.update(getCurrentTime())
             request_body = json.dumps(request_data, sort_keys=True)
             conn.request("POST", "/", request_body, headers)
@@ -149,4 +146,4 @@ if __name__ == '__main__':
     analysis_thread.daemon = True
     analysis_thread.start()
 
-    run(host='localhost', port=LISTEN_PORT)
+    run(host='0.0.0.0', port=LISTEN_PORT)
