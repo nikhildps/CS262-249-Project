@@ -90,7 +90,10 @@ def logSensorData(data):
 @post('/actuators')
 def registerActuator():
     global acuator_registry
-    request_data = request.json
+    try:
+        request_data = request.json
+    except ValueError:
+        return HTTPResponse(status=400, body="Request body must be valid JSON")
 
     if request_data is None:
         return HTTPResponse(status=400, body="Request body must be valid JSON")
@@ -113,7 +116,10 @@ def registerActuator():
 
 @post('/sensor_data')
 def addSensorData():
-    request_data = request.json
+    try:
+        request_data = request.json
+    except ValueError:
+        return HTTPResponse(status=400, body="Request body must be valid JSON")
 
     if request_data is None:
         return HTTPResponse(status=400, body="Request body must be valid JSON")
