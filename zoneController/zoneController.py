@@ -19,6 +19,12 @@ HEAT_POINT_1 = 0
 COOL_POINT_1 = 128
 COOL_POINT_2 = 256
 
+COOL_HIGH_SIGNAL = -2
+COOL_LOW_SIGNAL = -1
+OFF_SIGNAL = 0
+HEAT_LOW_SIGNAL = 1
+HEAT_HIGH_SIGNAL = 2
+
 # Global variables might not be the best idea
 # Just using them to get this done quickly for the project demo
 actuator_registry = {}
@@ -58,12 +64,16 @@ def analyzeSensorData():
         econ_addr = addrs.get("Economizer")
         if hvac_addr is not None and name == "Room":
             room_temp = float(reading["Temperature"])
-            if room_temp > COOL_POINT_1:
-                sendActuationSignal(hvac_addr, "Cool")
+            if room_temp > COOL_POINT_2:
+                sendActuationSignal(hvac_addr, COOL_HIGH_SIGNAL)
+            elif room_temp > COOL_POINT_1:
+                sendActuationSignal(hvac_addr, COOL_LOW_SIGNAL)
+            elif room_temp < HEAT_POINT_2:
+                sendActuationSignal(hvac_addr, HEAT_HIGH_SIGNAL)
             elif room_temp < HEAT_POINT_1:
-                sendActuationSignal(hvac_addr, "Heat")
+                sendActuationSignal(hvac_addr, HEAT_LOW_SIGNAL)
             else:
-                sendActuationSignal(hvac_addr, "Off")
+                sendActuationSignal(hvac_addr, OFF_SIGNAL)
 
         elif econ_addr is not None and name == "Economizer":
             env_temp = float(reading["Temperature"])
