@@ -86,8 +86,6 @@ def analyzeSensorData():
             else:
                 sendActuationSignal(econ_addr, 0.5)
 
-        analysis_queue.task_done()
-
 def logSensorData(data):
     timestamp = getCurrentTime()
     data["ControllerDate"] = "{}/{}/{}".format(timestamp["Year"], timestamp["Month"], timestamp["Day"])
