@@ -1,1 +1,6 @@
-Insert Related Work Here
+\subsection{Location-Independent Routing}
+
+\subsection{Large-Scale Storage Systems}
+Numerous storage systems have been devised that operate at a large scale. Google \cite{bigtable, megastore}, Amazon \cite{dynamo} and Facebook \cite{haystack} have all developed software platforms that act as interfaces to the large collections of commodity servers contained in their data centers. While these systems are distributed in that they contain large quantities of nodes, and may even operate across geographically distant locations, they embody the cloud-based approach described earlier. Microsoft's Bolt \cite{bolt}, on the other hand, is essentially a hybrid system that incorporates both cloud-based storage resources as well as at-home servers. These local servers act as caches and enable continued operation even when a connection to the cloud is lost. We envision the Global Data Plane incorporating many important ideas from these systems, such as replication for fault tolerance and protocols to enforce agreement amongst these replicas. However, the Global Data Plane is intended to consist of nodes that are more geographically distributed than those seen in these systems. This structure is similar to what was produced by the OceanStore \cite{oceanstore} project, and the GDP's use of logs is specifically inspired by the follow-on Antiquity \cite{antiquity} project.
+
+\subsection{sMAP}
