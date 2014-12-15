@@ -90,10 +90,8 @@ def analyzeSensorData():
 
 def logSensorData(data):
     timestamp = getCurrentTime()
-    data["ControllerDate"] = "{}/{}/{}".format( \
-        timestamp["Year"], timestamp["Month"], timestamp["Day"])
-    data["ControllerTime"] = "{}:{}:{}".format( \
-        timestamp["Hour"], timestamp["Minute"], timestamp["Second"])
+    data["ControllerDate"] = "{}/{}/{}".format(timestamp["Year"], timestamp["Month"], timestamp["Day"])
+    data["ControllerTime"] = "{}:{}:{}".format(timestamp["Hour"], timestamp["Minute"], timestamp["Second"])
     with open(LOG_FILE_NAME, "a") as f:
         f.write(json.dumps(data, sort_keys=True))
 
