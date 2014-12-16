@@ -81,7 +81,7 @@ def analyzeSensorData():
             else:
                 sendActuationSignal(hvac_addr, OFF_SIGNAL)
 
-        elif econ_addr is not None and name == "Economizer":
+        elif econ_addr is not None and name == "Environment":
             env_temp = float(reading["Temperature"])
             if env_temp > COOL_POINT_2 or env_temp < HEAT_POINT_2:
                 sendActuationSignal(econ_addr, CLOSED_SIGNAL)
