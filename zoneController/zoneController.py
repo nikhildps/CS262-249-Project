@@ -52,9 +52,11 @@ def sendActuationSignal(ip_addr, signal):
 
     try:
         with closing(httplib.HTTPConnection(ip_addr)) as conn:
+            print "Sending to " + ip_addr
             request_data.update(getCurrentTime())
             request_body = json.dumps(request_data, sort_keys=True)
             conn.request("POST", "/", request_body, headers)
+            print "Sent to " + ip_addr
     except:
         pass
 
