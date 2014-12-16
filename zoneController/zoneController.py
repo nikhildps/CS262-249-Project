@@ -25,6 +25,10 @@ OFF_SIGNAL = 0
 HEAT_LOW_SIGNAL = 1
 HEAT_HIGH_SIGNAL = 2
 
+OPEN_FULL_SIGNAL = 2
+OPEN_PARTIAL_SIGNAL = 1
+CLOSED_SIGNAL = 0
+
 # Global variables might not be the best idea
 # Just using them to get this done quickly for the project demo
 actuator_registry = {}
@@ -78,13 +82,13 @@ def analyzeSensorData():
         elif econ_addr is not None and name == "Economizer":
             env_temp = float(reading["Temperature"])
             if env_temp > COOL_POINT_2 or env_temp < HEAT_POINT_2:
-                sendActuationSignal(econ_addr, 0)
+                sendActuationSignal(econ_addr, CLOSED_SIGNAL)
             elif HEAT_POINT_1 < env_temp < COOL_POINT_1:
-                sendActuationSignal(econ_addr, 1)
+                sendActuationSignal(econ_addr, OPEN_FULL_SIGNAL)
                 if hvac_addr is not None:
                     sendActuationSignal(hvac_addr, "Off")
             else:
-                sendActuationSignal(econ_addr, 0.5)
+                sendActuationSignal(econ_addr, OPEN_PARTIAL_SIGNAL)
 
 def logSensorData(data):
     timestamp = getCurrentTime()
