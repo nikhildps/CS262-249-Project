@@ -1,1 +1,32 @@
-Insert Evaluation Here
+\subsection{Experimental Setup}
+We constructed an HTTP server using the DLog library in order to integrate sMAP with the GDP. This server accepts incoming data in the form of JSON and will produce JSON when queried. Our server implementation accepts data from the sMAP sensors as described in section 5 or from synthetic sensor clients we designed for the purpose of our experiments. The server exposes a simple REST API with the following methods:
+\begin{enumerate}
+\item \texttt{GET /uuid/record\_number}: Retrieves the specified GDP log entry
+\item \texttt{PUT /uuid}: Appends an entry to the specified GPD log
+\end{enumerate}
+
+We deployed our complete software system, diagrammed in Figure X, on eight Amazon Elastic Cloud Compute (EC2) servers deployed across the globe. Server locations include Germany, Japan, Singapore, and Ireland. We used EC2 \textit{m3.medium} instances with Intel Xeon E5-2670 CPUs running at 2.6 GHz, 3.75 GiB of RAM, and a 4 GiB SSD. We then ran simulated clients from a local server in Berkeley. In our experiments, the clients connect to a single GDP server, also in Berkeley, as their entry point into the network. These clients simulate sensors that are part of an sMAP deployment and therefore communicate by exchanging data encoded as JSON over HTTP. Our experiments involved 10 rounds in which 10 sensor clients and ran on a periodic schedule, sending an append request to the server every 3 seconds. We ran each round for a duration of 1 minute, producing 2000 requests in total.
+
+\subsection{Testing Direct Source Optimization}
+In our first experiment, we tested the \textit{Direct Source Optimization} described above. We measured system performance in terms of latency. Specifically, we measured four different forms of latency:
+\begin{enumerate}
+\item \textit{End-to-End (Server)}: The total round trip time from the point at which a request is sent from the GDP entry point server to the point at which this server receives the corresponding acknowledgment
+\item \textit{End-to-End (Client)}: The total round trip time for a request as observed by the sensor client
+\item \textit{Service}: The time required for processing an append request at the GDP server owning the relevant log
+\item \textit{Network}: The difference between end-to-end server latency and service latency (time spent traversing Chimera overlay links)
+\end{enumerate}
+
+Figure X $a$ through $c$ contain CDF diagrams for each of these latency types. As can be seen in part $c$, service latency consistently makes a negligible contribution to end-to-end latency. Thus, end-to-end server latency is dominated by the network latency. Overall, the \textit{Direct Source Optimization} improves upon the original Chimera routing algorithm. For example, the 90\textsuperscript{th} percentile for end-to-end server latency is 182.8 milliseconds with optimization and 351.9 milliseconds without optimization.
+
+For all subsequent experiments, we left this optimization enabled because of its reliable improvements over the original configuration.
+
+\subsection{Leafset Replacement Algorithms}
+Chimera's leafset can be alternatively viewed as a cache of physical network addresses. This enables storage of popular destination addresses in a given node's cache, which in turn enables direct routing to these addresses. We tested the three cache replacement policies described in section 6.2. Once again, we measure performance in terms of latency, using the same four types as defined in section 7.2.
+
+Our results are depicted in Figure X. Once again, network latency dominates end-to-end server delay. The deployment of our new replacement policies did not yield any significant improvement in performance. In accordance with our expectations, LRU appeared to perform better than the alternative policies, however the improvement was only marginal. 
+
+\subsection{Analyzing Leafset Effectiveness}
+Next, we studied the value of Chimera's leafset in improving system performance. As in the previous experiments, we used the four forms of latency defined in section 7.2 to measure performance. The results are shown in Figure X.  As expected, a one-hop DHT architecture achieved through a full leafset produces over the empty leafset version. However, it is difficult to make firm conclusions from these results because our network size was limited to only eight nodes.
+
+\subsection{Discussion}
+In an honest appraisal of our system, we can see that \textit{Direct Source Optimization} is the only optimization which exhibited a marked improvement compared to the baseline routing algorithm. Changing the cache policy or the size of the leafset did not achieve the desired level of improvement, possibly because of the limited number of nodes in the network we used for testing. Studying more effective operations and larger networks leaves many opportunities for future work.
