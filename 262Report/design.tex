@@ -1,1 +1,15 @@
-Insert System Design Discussion Here
+\subsection{GDPD}
+The Global Data Plane daemon (GDPd) is a background process that runs on GDP servers. It forms the foundation of our system and handles the physical storage of logs and their entries. We use a previously created prototype implementation of this component. Currently, logs are stored as a flat file in which entries are stored in a contiguous sequence. Additionally, an index is maintained which maps log entries to file offsets. Thus, accessing a specific log entry entails looking up its offset using the entry number in the index, seeking to this offset within the flat file, and finally reading the entry. The GDP daemon features a standard client-server interface based on TCP. Clients who wish to use the daemon must issue commands conforming to a specific protocol.
+
+\subsection{GDP Lib}
+The GDP Library (Lib for short) makes it easy for users to interact with a running GDPd instance in their code. The library handles all of the underlying networking needed to communicate with the daemon via TCP. As with GDPd, we use a previously created prototype implementation of GDP Lib. This prototype implementation is intended for use in C code, although other language bindings have been created as well. We specifically make use of the following functions:
+\begin{enumerate}
+\item \texttt{gdp\_gcl\_create} initializes a new log
+\item \texttt{gdp\_gcl\_open} opens an existing log, either for reading or appending
+\item \texttt{gdp\_gcl\_read} reads a specific entry from a log
+\end{enumerate}
+
+\subsection{GDP-Wrapper}
+We tie GDPD and GDP Lib together in an object-oriented C++ wrapper library. This wrapper library is intended to provide a cleaner abstraction than the combination of GDPd and GDP Lib, which now must be run together on a GDP server. While this violates the original design intent of the two components, we found it far easier to rely on the simple function calls of GDP Lib rather than the protocol of GDPd to perform log storage. In addition, this approach had two important benefits. First, it expedited our development process. Second, it kept our distributed GDP prototype isolated from changes in the GDPd protocol or its implementation.
+
+The primary abstraction of the GDP-Wrapper library is the GDP Channel Log (GCL) object, which features a very simple interface. Instantiating the object will automatically open a GDP log with the provided name or create the log if it did not previously exist. The object then exposes simple \texttt{read} and \texttt{append} methods that allow the underlying log to be accessed and modified.
